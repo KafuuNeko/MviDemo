@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MviDemo</string>
+    <string name="load_application_list">加载应用列表</string>
+</resources>
