@@ -2,21 +2,21 @@ package cc.kafuu.mvidemo
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import cc.kafuu.mvidemo.core.CoreViewModel
+import cc.kafuu.mvidemo.core.UiIntentObserver
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 
 class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(initStatus = MainUiState.None),
     KoinComponent {
-    override fun onReceivedUiIntent(uiIntent: MainUiIntent) {
-        when (uiIntent) {
-            MainUiIntent.PageCreate -> onPageCreate()
-            MainUiIntent.LoadApplicationList -> onLoadApplicationList()
-        }
+    companion object {
+        private const val TAG = "MainViewModel"
     }
 
+    @UiIntentObserver(MainUiIntent.PageCreate::class)
     private fun onPageCreate() {
         // 将uiState变更为Master状态
         MainUiState.Master().setup()
@@ -24,13 +24,14 @@ class MainViewModel : CoreViewModel<MainUiIntent, MainUiState>(initStatus = Main
 //        _uiStateFlow.value = MainUiState.Master()
     }
 
-    private fun onLoadApplicationList() = viewModelScope.launch {
+    @UiIntentObserver(MainUiIntent.LoadApplicationList::class)
+    private fun onLoadApplicationList(
+        uiIntent: MainUiIntent.LoadApplicationList
+    ) = viewModelScope.launch {
+        Log.d(TAG, "onLoadApplicationList: ${uiIntent.time}")
         val applications = get<Context>().packageManager.getInstalledApplications(
             PackageManager.GET_META_DATA
         )
-        // awaitUiStateOfType等待uiState变成MainUiState.Master类型后才会返回
-        // 如果当前uiState状态不是MainUiState.Master则会阻塞这个协程，直到状态变更为MainUiState.Master状态
-        // 当uiState当前状态为Master状态则更新当前Master状态中的列表状态
         awaitUiStateOfType<MainUiState.Master>().copy(
             listState = MainListState.ApplicationPackages(applications.map { it.packageName })
         ).setup()
@@ -81,5 +82,5 @@ sealed class MainUiIntent {
     /**
      * 刷新应用列表
      */
-    data object LoadApplicationList : MainUiIntent()
+    data class LoadApplicationList(val time: Long) : MainUiIntent()
 }

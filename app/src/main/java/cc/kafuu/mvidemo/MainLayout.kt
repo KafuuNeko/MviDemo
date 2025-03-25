@@ -63,7 +63,7 @@ private fun MasterLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp),
-            onClick = { onEmitUiIntent(MainUiIntent.LoadApplicationList) }
+            onClick = { onEmitUiIntent(MainUiIntent.LoadApplicationList(System.currentTimeMillis())) }
         ) {
             Text(text = stringResource(R.string.load_application_list))
         }
